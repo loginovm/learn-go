@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 )
 
 var ErrInvalidString = errors.New("invalid string")
@@ -17,49 +18,48 @@ func Unpack(input string) (string, error) {
 	if unicode.IsDigit(rune(input[0])) {
 		return "", ErrInvalidString
 	}
-	inputRunes := []rune(input)
 	digitByRuneIndexMap := make(map[int]int)
 	for _, r := range "0123456789" {
 		startIdx := 0
 		for {
-			digitIdx := strings.IndexRune(string(inputRunes[startIdx:]), r)
-			if digitIdx < 0 {
+			idx := strings.IndexRune(input[startIdx:], r)
+			if idx < 0 {
 				break
 			}
-			digitIdx += startIdx
-			digitByRuneIndexMap[digitIdx], _ = strconv.Atoi(string(r))
-			startIdx = digitIdx + 1
-			if startIdx >= len(inputRunes) {
+			idx += startIdx
+			digitByRuneIndexMap[idx], _ = strconv.Atoi(string(r))
+			startIdx = idx + utf8.RuneLen(r)
+			if startIdx >= len(input) {
 				break
 			}
 		}
 	}
 
+	sb := strings.Builder{}
+	sb.Grow(len(input))
+
 	digitIndexes := sortMapKeys(digitByRuneIndexMap)
-	var resultString string
 	var startIdx int
 	for _, digitIdx := range digitIndexes {
 		if _, ok := digitByRuneIndexMap[digitIdx-1]; ok {
 			return "", ErrInvalidString
 		}
-		partBetweenDigits := inputRunes[startIdx:digitIdx]
-		if len(partBetweenDigits) > 1 {
-			partBetweenDigitsWithoutLastRune := partBetweenDigits[:len(partBetweenDigits)-1]
-			resultString += string(partBetweenDigitsWithoutLastRune)
-		}
-		lastRune := partBetweenDigits[len(partBetweenDigits)-1:]
+		partBetweenDigits := input[startIdx:digitIdx]
+		lastRune, size := utf8.DecodeLastRuneInString(partBetweenDigits)
+		partBetweenDigitsWithoutLastRune := partBetweenDigits[:len(partBetweenDigits)-size]
+		sb.WriteString(partBetweenDigitsWithoutLastRune)
 		multiplyCount := digitByRuneIndexMap[digitIdx]
 		if multiplyCount > 0 {
-			resultString += strings.Repeat(string(lastRune), multiplyCount)
+			sb.WriteString(strings.Repeat(string(lastRune), multiplyCount))
 		}
 		startIdx = digitIdx + 1
 	}
 
-	if startIdx < len(inputRunes) {
-		resultString += string(inputRunes[startIdx:])
+	if startIdx < len(input) {
+		sb.WriteString(input[startIdx:])
 	}
 
-	return resultString, nil
+	return sb.String(), nil
 }
 
 func sortMapKeys(input map[int]int) []int {
