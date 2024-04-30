@@ -79,4 +79,28 @@ func TestTop10(t *testing.T) {
 			require.Equal(t, expected, Top10(text))
 		}
 	})
+
+	t.Run("same word in different case", func(t *testing.T) {
+		input := "нога нога Нога"
+		expected := []string{"нога", "Нога"}
+		require.Equal(t, expected, Top10(input))
+	})
+
+	t.Run("verify sorting", func(t *testing.T) {
+		input := "z x a b 1 2"
+		expected := []string{"1", "2", "a", "b", "x", "z"}
+		require.Equal(t, expected, Top10(input))
+	})
+
+	t.Run("verify frequency count", func(t *testing.T) {
+		input := "a a, a a, a a,,"
+		expected := []string{"a", "a,", "a,,"}
+		require.Equal(t, expected, Top10(input))
+	})
+
+	t.Run("verify punctuation", func(t *testing.T) {
+		input := "a - a a-a a, ,"
+		expected := []string{"a", ",", "-", "a,", "a-a"}
+		require.Equal(t, expected, Top10(input))
+	})
 }
