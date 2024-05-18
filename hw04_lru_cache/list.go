@@ -79,6 +79,11 @@ func (l *list) Remove(i *ListItem) {
 	next := i.Next
 	prev := i.Prev
 
+	if next == nil && prev == nil && l.count != 1 {
+		// this item does not belong to list
+		return
+	}
+
 	if next != nil {
 		if prev != nil {
 			next.Prev = prev
@@ -94,6 +99,8 @@ func (l *list) Remove(i *ListItem) {
 			prev.Next = nil
 		}
 	}
+	next = nil
+	prev = nil
 
 	if l.first == i {
 		if l.first.Next != nil {
