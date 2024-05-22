@@ -48,4 +48,17 @@ func TestList(t *testing.T) {
 		}
 		require.Equal(t, []int{70, 80, 60, 40, 10, 30, 50}, elems)
 	})
+
+	t.Run("delete twice", func(t *testing.T) {
+		l := NewList()
+
+		elem := l.PushFront(10)
+		require.Equal(t, 1, l.Len())
+
+		l.Remove(elem)
+		require.Equal(t, 0, l.Len())
+
+		l.Remove(elem)
+		require.Equal(t, 0, l.Len())
+	})
 }
