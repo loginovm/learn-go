@@ -68,3 +68,35 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 }
+
+func TestErrorLimit(t *testing.T) {
+	tests := []struct {
+		maxErrorsCount int
+		tasksCount     int
+	}{
+		{maxErrorsCount: 0, tasksCount: 100},
+		{maxErrorsCount: -1, tasksCount: 100},
+	}
+
+	for _, tc := range tests {
+		t.Run("Error limit <=0 means no limit at all", func(t *testing.T) {
+			tasks := make([]Task, 0, tc.tasksCount)
+			var runTasksCount int32
+
+			for i := 0; i < tc.tasksCount; i++ {
+				err := fmt.Errorf("error from task %d", i)
+				tasks = append(tasks, func() error {
+					time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+					atomic.AddInt32(&runTasksCount, 1)
+					return err
+				})
+			}
+
+			workersCount := 10
+			err := Run(tasks, workersCount, tc.maxErrorsCount)
+
+			require.Nil(t, err)
+			require.Equal(t, int32(tc.tasksCount), runTasksCount, "not all tasks with errors were processed")
+		})
+	}
+}
