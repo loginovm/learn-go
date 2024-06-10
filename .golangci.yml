@@ -1,4 +1,4 @@
-cd run:
+run:
   tests: true
   build-tags:
     - bench
@@ -31,10 +31,10 @@ linters:
   disable-all: true
   enable:
     - asciicheck
-    - bodyclose
     - depguard
     - dogsled
     - dupl
+    - bodyclose
     - durationcheck
     - errorlint
     - exhaustive
