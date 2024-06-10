@@ -9,22 +9,18 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	if done != nil {
-		return applyStagesWithCancellation(in, done, stages)
+	for _, stage := range stages {
+		in = applyStage(in, done, stage)
 	}
 
-	return applyStages(in, stages)
+	return in
 }
 
-func applyStages(in In, stages []Stage) Out {
-	if len(stages) == 0 {
-		return in
+func applyStage(in In, done In, stage Stage) Out {
+	if done == nil {
+		return stage(in)
 	}
 
-	return applyStages(stages[0](in), stages[1:])
-}
-
-func applyStagesWithCancellation(in In, done In, stages []Stage) Out {
 	in2 := make(Bi)
 
 	go func() {
@@ -43,9 +39,5 @@ func applyStagesWithCancellation(in In, done In, stages []Stage) Out {
 		}
 	}()
 
-	if len(stages) == 0 {
-		return in2
-	}
-
-	return applyStagesWithCancellation(stages[0](in2), done, stages[1:])
+	return stage(in2)
 }
