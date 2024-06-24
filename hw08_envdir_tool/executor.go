@@ -29,6 +29,7 @@ func RunCmdWithWriters(cmd []string, env Environment, stdout, stderr io.Writer) 
 	c.Stderr = stderr
 
 	if err := c.Run(); err != nil {
+		stderr.Write([]byte(err.Error()))
 		var exitError *exec.ExitError
 		if errors.As(err, &exitError) {
 			return exitError.ExitCode()
