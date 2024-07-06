@@ -1,0 +1,15 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/loginovm/learn-go/hw10_program_optimization
+BenchmarkStat-8   	  323365	      3701 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  324282	      3715 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  320089	      3738 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  310294	      3786 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  322228	      3709 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  323994	      3710 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  324603	      3708 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  325387	      3728 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  324664	      3710 ns/op	    6802 B/op	      88 allocs/op
+BenchmarkStat-8   	  321909	      3713 ns/op	    6802 B/op	      88 allocs/op
+PASS
+ok  	github.com/loginovm/learn-go/hw10_program_optimization	13.566s
