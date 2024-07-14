@@ -1,3 +1,4 @@
+//go:build !bench
 // +build !bench
 
 package hw10programoptimization
@@ -35,5 +36,46 @@ func TestGetDomainStat(t *testing.T) {
 		result, err := GetDomainStat(bytes.NewBufferString(data), "unknown")
 		require.NoError(t, err)
 		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("empty domain means no filter", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(data), "")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{
+			"teklist.net":     1,
+			"browsecat.com":   2,
+			"browsedrive.gov": 1,
+			"linktype.com":    1,
+		}, result)
+	})
+
+	t.Run("empty input returns no error", func(t *testing.T) {
+		result, err := GetDomainStat(&bytes.Buffer{}, "a")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("empty json returns no error", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString("{}"), "")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{}, result)
+	})
+
+	t.Run("invalid json returns error", func(t *testing.T) {
+		_, err := GetDomainStat(bytes.NewBufferString("."), "")
+		require.Error(t, err)
+	})
+
+	dataWithEmptyLines := `{"Id":1,"Name":"Howard Mendoza","Username":"0Oliver","Email":"aliquid_qui_ea@Browsedrive.gov","Phone":"6-866-899-36-79","Password":"InAQJvsq","Address":"Blackbird Place 25"}
+
+
+{"Id":2,"Name":"Jesse Vasquez","Username":"qRichardson","Email":"mLynch@broWsecat.com","Phone":"9-373-949-64-00","Password":"SiZLeNSGn","Address":"Fulton Hill 80"}`
+
+	t.Run("empty lines are ignored", func(t *testing.T) {
+		result, err := GetDomainStat(bytes.NewBufferString(dataWithEmptyLines), "com")
+		require.NoError(t, err)
+		require.Equal(t, DomainStat{
+			"browsecat.com": 1,
+		}, result)
 	})
 }

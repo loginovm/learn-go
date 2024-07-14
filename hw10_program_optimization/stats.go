@@ -1,66 +1,54 @@
 package hw10programoptimization
 
 import (
-	"encoding/json"
-	"fmt"
+	"bufio"
+	"bytes"
 	"io"
-	"regexp"
 	"strings"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 type User struct {
-	ID       int
-	Name     string
-	Username string
-	Email    string
-	Phone    string
-	Password string
-	Address  string
+	Email string
 }
 
 type DomainStat map[string]int
 
 func GetDomainStat(r io.Reader, domain string) (DomainStat, error) {
-	u, err := getUsers(r)
+	u, err := count(r, domain)
 	if err != nil {
-		return nil, fmt.Errorf("get users error: %w", err)
+		return nil, err
 	}
-	return countDomains(u, domain)
+	return u, nil
 }
 
-type users [100_000]User
-
-func getUsers(r io.Reader) (result users, err error) {
-	content, err := io.ReadAll(r)
-	if err != nil {
-		return
-	}
-
-	lines := strings.Split(string(content), "\n")
-	for i, line := range lines {
+func count(r io.Reader, domain string) (result DomainStat, err error) {
+	result = make(DomainStat)
+	domLevel1 := "." + domain
+	b := bufio.NewReader(r)
+	var er error
+	var line []byte
+	for er == nil {
+		line, er = b.ReadBytes('\n')
+		if er != nil && er != io.EOF {
+			return result, er
+		}
+		if len(bytes.TrimSpace(line)) == 0 {
+			continue
+		}
 		var user User
-		if err = json.Unmarshal([]byte(line), &user); err != nil {
+		if err = jsoniter.Unmarshal(line, &user); err != nil {
 			return
 		}
-		result[i] = user
+		if len(user.Email) > 0 {
+			matched := domain == "" || strings.HasSuffix(user.Email, domLevel1)
+			if matched {
+				i := strings.IndexByte(user.Email, '@')
+				domLevel2 := strings.ToLower(user.Email[i+1:])
+				result[domLevel2]++
+			}
+		}
 	}
 	return
-}
-
-func countDomains(u users, domain string) (DomainStat, error) {
-	result := make(DomainStat)
-
-	for _, user := range u {
-		matched, err := regexp.Match("\\."+domain, []byte(user.Email))
-		if err != nil {
-			return nil, err
-		}
-
-		if matched {
-			num := result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])]
-			num++
-			result[strings.ToLower(strings.SplitN(user.Email, "@", 2)[1])] = num
-		}
-	}
-	return result, nil
 }
