@@ -40,6 +40,9 @@ func TestTelnetClient(t *testing.T) {
 			err = client.Receive()
 			require.NoError(t, err)
 			require.Equal(t, "world\n", out.String())
+
+			err = client.Receive()
+			require.ErrorIs(t, err, errConnClosedByServer)
 		}()
 
 		go func() {
@@ -61,5 +64,16 @@ func TestTelnetClient(t *testing.T) {
 		}()
 
 		wg.Wait()
+	})
+
+	t.Run("Error when connecting to nonexistent host", func(t *testing.T) {
+		in := &bytes.Buffer{}
+		out := &bytes.Buffer{}
+
+		timeout, err := time.ParseDuration("10s")
+		require.NoError(t, err)
+
+		client := NewTelnetClient("fake.telnet.host", timeout, io.NopCloser(in), out)
+		require.Error(t, client.Connect())
 	})
 }
