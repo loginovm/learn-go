@@ -1,5 +1,17 @@
+[app]
+url = "localhost:8080"
+
 [logger]
 level = "INFO"
 
-# TODO
-# ...
+[datasource]
+# type = "in-memory"
+
+[datasource.sql]
+host = "localhost"
+port = "5432"
+user = "otus_user"
+password = "dev_pass"
+db-name = "calendar"
+ssl = "disable"
+migrations-dir = "migrations"
